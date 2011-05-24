@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               XML-Tidy-Tiny
-version:            0.01
+version:            0.02
 abstract:           Tiny XML tidy 
 author:
     - A. G. Grishayev <grian@cpan.org>

@@ -27,10 +27,16 @@ is( xml_tidy('123'), '123' );
 is( xml_tidy('<a>123<c/>456</a>'), '<a>123<c/>456</a>' );
 is( xml_tidy('<a><b>123</b></a>'), "<a>\n  <b>123</b>\n</a>" );
 is( xml_tidy('<?xml?><a>123</a>'), "<?xml?>\n<a>123</a>" );
+is( xml_tidy( '<a>9<b>123</b></a>'), "<a>\n  9\n  <b>123</b>\n</a>");
+is( xml_tidy( '<html>
+            <link/>
+            </html>'), 
+            '<html><link/></html>');
 
+              
 TODO: {
     local $TODO = "next version";
-    is( xml_tidy( '<a>9<b>123</b></a>'), "<a>\n  9\n  <b>123</b>\n</a>");
+    my $x;
 }; 
 
 

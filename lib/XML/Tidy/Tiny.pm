@@ -18,7 +18,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw(
     xml_tidy
 );
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub xml_tidy{
     my $data = shift;
@@ -40,30 +40,37 @@ sub xml_tidy{
         next unless length $item;
 
         my $type;
-        if ( $item =~ m/^</ ) {
-            if ( $item =~ m/^<\// ) {    # close tag
+        if ( $item =~ m/^</ ) { # TAG 
+            if ( $item =~ m/^<\// ) {    # TAG CLOSE
                 $type = -1;
                 my $indent;
                 --$level;
-                $buff .= $_ for "\n", '  ' x $level, @pre_push, $item;
+                push @pre_push, $item;
+                $pre_push[0]=~s/^\s+//;
+                $buff .= $_ for "\n", '  ' x $level, @pre_push;
                 @pre_push = ();
             }
-            elsif ( $item =~ m/\/>\z/ ) {
+            elsif ( $item =~ m/\/>\z/ ) { # TAG ALONE
                 $type = 0;
                 if (@pre_push) {
                     push @pre_push, $item;
                 }
                 else {
+                    $pre_push[0]=~s/^\s+//;
                     $buff .= $_ for "\n", '  ' x $level, @pre_push, $item;
                     @pre_push = ();
                 }
             }
             else {
                 $type = 1;
-                if (@pre_push) {
-                    $buff .= "\n";
-                    $buff .= $_ for  '  ' x ( $level - 1 ), @pre_push;
+                if (@pre_push) { # TAG OPEN
+                    $pre_push[0]=~s/^\s+//;
+                    $buff .= $_ for  "\n", '  ' x ( $level - 1 ), shift @pre_push;
                     ++$level;
+                    if ( @pre_push ){
+                        $pre_push[0]=~s/^\s+//;
+                        $buff .= $_ for "\n", '  ' x ( $level - 1), @pre_push;
+                    }
                     @pre_push = $item;
                 }
                 else {
@@ -73,19 +80,21 @@ sub xml_tidy{
             }
         }
         else {
+            next if $item=~m/^\s+\z/;
             if (@pre_push) {
                 push @pre_push, $item;
             }
             else {
-                $buff .= $_ for "\n", '  ' x $level, @pre_push, $item;
+                push @pre_push, $item;
+                $pre_push[0]=~s/^\s+//;
+                $buff .= $_ for "\n", '  ' x $level, @pre_push;
                 @pre_push = ( );
             }
         }
     }
-    use Data::Dumper;
-    print STDERR Dumper( @pre_push );
     if (@pre_push) {
         $buff .= "\n" if length $buff;
+        $pre_push[0]=~s/^\s+//;
         $buff .= $_   for '  ' x ( $level ), @pre_push;
     }
     $buff=~s/^\s+//;
